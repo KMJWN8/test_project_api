@@ -1,0 +1,146 @@
+[
+    {
+        "model": "divisions.team",
+        "pk": 1,
+        "fields": {
+            "name": "Группа анализа угроз",
+            "division": 1,
+            "members": [4, 6, 36, 37]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 2,
+        "fields": {
+            "name": "Группа мониторинга",
+            "division": 1,
+            "members": [5, 7, 38, 39]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 3,
+        "fields": {
+            "name": "Группа реагирования на инциденты",
+            "division": 2,
+            "members": [8, 9, 40, 41]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 4,
+        "fields": {
+            "name": "Группа восстановления данных",
+            "division": 2,
+            "members": [10, 11, 42, 43]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 5,
+        "fields": {
+            "name": "Группа киберразведки",
+            "division": 3,
+            "members": [12, 13, 44, 45]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 6,
+        "fields": {
+            "name": "Группа анализа атак",
+            "division": 3,
+            "members": [14, 15, 46, 47]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 7,
+        "fields": {
+            "name": "Группа предотвращения атак",
+            "division": 4,
+            "members": [16, 17, 48, 49]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 8,
+        "fields": {
+            "name": "Группа защиты периметра",
+            "division": 4,
+            "members": [18, 19, 50]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 9,
+        "fields": {
+            "name": "Группа физической защиты объектов",
+            "division": 5,
+            "members": [20, 21]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 10,
+        "fields": {
+            "name": "Группа контроля доступа",
+            "division": 5,
+            "members": [22, 23]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 11,
+        "fields": {
+            "name": "Frontend команда",
+            "division": 6,
+            "members": [24, 25]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 12,
+        "fields": {
+            "name": "Backend команда",
+            "division": 6,
+            "members": [26, 27]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 13,
+        "fields": {
+            "name": "Команда системного администрирования",
+            "division": 7,
+            "members": [28, 29]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 14,
+        "fields": {
+            "name": "Команда сетевой инфраструктуры",
+            "division": 7,
+            "members": [30, 31]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 15,
+        "fields": {
+            "name": "Команда функционального тестирования",
+            "division": 8,
+            "members": [32, 33]
+        }
+    },
+    {
+        "model": "divisions.team",
+        "pk": 16,
+        "fields": {
+            "name": "Команда нагрузочного тестирования",
+            "division": 8,
+            "members": [34, 35]
+        }
+    }
+]
