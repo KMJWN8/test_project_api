@@ -1,6 +1,39 @@
 from django.db import models
 
 
+class EmployeeContainerMixin:
+    """
+    Миксин для моделей, которые содержат сотрудников и дочерние подразделения.
+    Предоставляет метод get_all_employees для получения всех сотрудников.
+    """
+
+    def get_all_employees(self):
+        """
+        Возвращает всех сотрудников, включая дочерние подразделения.
+        """
+        employees = []
+
+        # Добавляем руководителя, если он есть
+        if hasattr(self, "leader") and self.leader:
+            employees.append(self.leader)
+
+        # Определяем связь с дочерними подразделениями
+        child_relation = None
+        if hasattr(self, "departments"):  # Для Service
+            child_relation = self.departments.all()
+        elif hasattr(self, "divisions"):  # Для Department
+            child_relation = self.divisions.all()
+        elif hasattr(self, "teams"):  # Для Division
+            child_relation = self.teams.all()
+
+        # Рекурсивно добавляем сотрудников из дочерних подразделений
+        if child_relation:
+            for child in child_relation:
+                employees += child.get_all_employees()
+
+        return employees
+
+
 class Employee(models.Model):
     full_name = models.CharField(max_length=255, verbose_name="ФИО")
     position = models.CharField(max_length=255, verbose_name="Должность")
@@ -38,14 +71,8 @@ class Employee(models.Model):
         # Если сотрудник не связан ни с одним подразделением
         return "Не определено"
 
-    def get_photo(self, obj):
-        if obj.photo:
-            request = self.context.get("request")
-            return request.build_absolute_uri(obj.photo.url)
-        return None
 
-
-class Service(models.Model):
+class Service(models.Model, EmployeeContainerMixin):
     name = models.CharField(max_length=255)
     leader = models.OneToOneField(
         Employee,
@@ -55,23 +82,11 @@ class Service(models.Model):
         blank=True,
     )
 
-    def get_all_employees(self):
-        """
-        Возвращает всех сотрудников службы, включая руководителя службы,
-        руководителей управлений, отделов, а также всех сотрудников групп.
-        """
-        employees = []
-        if self.leader:
-            employees.append(self.leader)  # Добавляем руководителя службы
-        for department in self.departments.all():
-            employees += department.get_all_employees()
-        return employees
-
     def __str__(self):
         return self.name
 
 
-class Department(models.Model):
+class Department(models.Model, EmployeeContainerMixin):
     service = models.ForeignKey(
         Service, on_delete=models.CASCADE, related_name="departments"
     )
@@ -84,23 +99,11 @@ class Department(models.Model):
         blank=True,
     )
 
-    def get_all_employees(self):
-        """
-        Возвращает всех сотрудников управления, включая руководителя управления,
-        руководителей отделов, а также всех сотрудников групп.
-        """
-        employees = []
-        if self.leader:
-            employees.append(self.leader)  # Добавляем руководителя управления
-        for division in self.divisions.all():
-            employees += division.get_all_employees()
-        return employees
-
     def __str__(self):
         return f"{self.name} ({self.service})"
 
 
-class Division(models.Model):
+class Division(models.Model, EmployeeContainerMixin):
     department = models.ForeignKey(
         Department, on_delete=models.CASCADE, related_name="divisions"
     )
@@ -112,18 +115,6 @@ class Division(models.Model):
         null=True,
         blank=True,
     )
-
-    def get_all_employees(self):
-        """
-        Возвращает всех сотрудников отдела, включая руководителя отдела
-        и всех сотрудников групп.
-        """
-        employees = []
-        if self.leader:
-            employees.append(self.leader)  # Добавляем руководителя отдела
-        for team in self.teams.all():
-            employees += team.get_all_employees()
-        return employees
 
     def __str__(self):
         return f"{self.name} ({self.department})"

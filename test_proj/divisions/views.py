@@ -14,117 +14,135 @@ from .serializers import (
 )
 
 
-class ServiceViewSet(viewsets.ModelViewSet):
+class EmployeesMixin:
+    """
+    Миксин для ViewSet, который предоставляет универсальный метод employees.
+    """
+
+    @action(detail=True, methods=["get"], url_path="employees")
+    def employees(self, request, pk=None):
+        """
+        Возвращает всех сотрудников, включая дочерние подразделения.
+        """
+        obj = self.get_object()
+        employees = obj.get_all_employees()
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data)
+
+
+class ServiceViewSet(viewsets.ModelViewSet, EmployeesMixin):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
-    @action(detail=True, methods=["get"], url_path="employees")
-    def employees(self, request, pk=None):
-        """
-        Возвращает всех сотрудников службы, включая дочерние подразделения.
-        """
+    @action(detail=True, methods=["get"], url_path="statistics")
+    def statistics(self, request, pk=None):
         service = self.get_object()
+        # Получаем всех сотрудников службы
         employees = service.get_all_employees()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
+        # Используем универсальную функцию для получения статистики
+        stats = get_statistics(employees)
+        # Возвращаем результат
+        return Response(stats)
 
 
-class DepartmentViewSet(viewsets.ModelViewSet):
+class DepartmentViewSet(viewsets.ModelViewSet, EmployeesMixin):
     queryset = Department.objects.all()
     serializer_class = DepartmentSerializer
 
-    @action(detail=True, methods=["get"], url_path="employees")
-    def employees(self, request, pk=None):
-        """
-        Возвращает всех сотрудников управления, включая дочерние подразделения.
-        """
-        department = self.get_object()
-        employees = department.get_all_employees()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
-
     @action(detail=True, methods=["get"], url_path="statistics")
     def statistics(self, request, pk=None):
-        """
-        Возвращает статистику для выбранного управления:
-        - Количество сотрудников.
-        - Средний возраст сотрудников.
-        - Средний стаж работы в подразделении.
-        """
         department = self.get_object()
-
         # Получаем всех сотрудников подразделения
         employees = department.get_all_employees()
-
-        # Количество сотрудников
-        employee_count = len(employees)
-
-        if employee_count == 0:
-            # Если нет сотрудников, возвращаем нулевые значения
-            return Response(
-                {"employee_count": 0, "average_age": 0, "average_tenure": 0}
-            )
-
-        # Средний возраст сотрудников
-        today = date.today()
-        # Ручной расчет среднего возраста и стажа
-        total_age = 0
-        total_tenure = 0
-
-        for employee in employees:
-            # Возраст сотрудника
-            age = today.year - employee.date_of_birth.year
-            total_age += age
-
-            # Стаж работы
-            tenure = today.year - employee.start_date.year
-            total_tenure += tenure
-
-        # Вычисляем средние значения
-        average_age = total_age / employee_count
-        average_tenure = total_tenure / employee_count
-
+        # Используем универсальную функцию для получения статистики
+        stats = get_statistics(employees)
         # Возвращаем результат
-        return Response(
-            {
-                "employee_count": employee_count,
-                "average_age": round(average_age, 2),
-                "average_tenure": round(average_tenure, 2),
-            }
-        )
+        return Response(stats)
 
 
-class DivisionViewSet(viewsets.ModelViewSet):
+class DivisionViewSet(viewsets.ModelViewSet, EmployeesMixin):
     queryset = Division.objects.all()
     serializer_class = DivisionSerializer
 
-    @action(detail=True, methods=["get"], url_path="employees")
-    def employees(self, request, pk=None):
-        """
-        Возвращает всех сотрудников отдела, включая его руководителя
-        и всех сотрудников групп.
-        """
+    @action(detail=True, methods=["get"], url_path="statistics")
+    def statistics(self, request, pk=None):
         division = self.get_object()
+        # Получаем всех сотрудников службы
         employees = division.get_all_employees()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
+        # Используем универсальную функцию для получения статистики
+        stats = get_statistics(employees)
+        # Возвращаем результат
+        return Response(stats)
 
 
-class TeamViewSet(viewsets.ModelViewSet):
+class TeamViewSet(viewsets.ModelViewSet, EmployeesMixin):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
 
-    @action(detail=True, methods=["get"], url_path="employees")
-    def employees(self, request, pk=None):
-        """
-        Возвращает всех сотрудников группы.
-        """
+    @action(detail=True, methods=["get"], url_path="statistics")
+    def statistics(self, request, pk=None):
         team = self.get_object()
+        # Получаем всех сотрудников службы
         employees = team.get_all_employees()
-        serializer = EmployeeSerializer(employees, many=True)
-        return Response(serializer.data)
+        # Используем универсальную функцию для получения статистики
+        stats = get_statistics(employees)
+        # Возвращаем результат
+        return Response(stats)
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+
+
+def get_statistics(employees):
+    """
+    Возвращает статистику для переданного списка сотрудников:
+    - Количество сотрудников.
+    - Средний возраст сотрудников.
+    - Средний стаж работы.
+    """
+    employee_count = len(employees)
+
+    if employee_count == 0:
+        # Если нет сотрудников, возвращаем нулевые значения
+        return {
+            "employee_count": 0,
+            "average_age": 0,
+            "average_tenure": 0,
+        }
+
+    # Средний возраст сотрудников
+    today = date.today()
+    total_age = 0
+    total_tenure = 0
+
+    for employee in employees:
+        # Возраст сотрудника
+        age = today.year - employee.date_of_birth.year
+        if (today.month, today.day) < (
+            employee.date_of_birth.month,
+            employee.date_of_birth.day,
+        ):
+            age -= 1  # Корректировка возраста, если день рождения ещё не наступил
+        total_age += age
+
+        # Стаж работы
+        tenure = today.year - employee.start_date.year
+        if (today.month, today.day) < (
+            employee.start_date.month,
+            employee.start_date.day,
+        ):
+            tenure -= 1  # Корректировка стажа, если год ещё не завершился
+        total_tenure += tenure
+
+    # Вычисляем средние значения
+    average_age = total_age / employee_count
+    average_tenure = total_tenure / employee_count
+
+    # Возвращаем результат
+    return {
+        "employee_count": employee_count,
+        "average_age": round(average_age, 2),
+        "average_tenure": round(average_tenure, 2),
+    }
