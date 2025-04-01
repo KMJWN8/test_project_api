@@ -12,11 +12,6 @@ class EmployeeContainerMixin:
         Возвращает всех сотрудников, включая дочерние подразделения.
         """
         employees = []
-
-        # Добавляем руководителя, если он есть
-        if hasattr(self, "leader") and self.leader:
-            employees.append(self.leader)
-
         # Определяем связь с дочерними подразделениями
         child_relation = None
         if hasattr(self, "departments"):  # Для Service
@@ -34,53 +29,8 @@ class EmployeeContainerMixin:
         return employees
 
 
-class Employee(models.Model):
-    full_name = models.CharField(max_length=255, verbose_name="ФИО")
-    position = models.CharField(max_length=255, verbose_name="Должность")
-    date_of_birth = models.DateField(verbose_name="Дата рождения")
-    photo = models.ImageField(
-        upload_to="employee_photos/", blank=True, null=True, verbose_name="Фотография"
-    )
-    start_date = models.DateField(verbose_name="Дата начала работы")
-
-    def __str__(self):
-        return self.full_name
-
-    @property
-    def subdivision_name(self):
-        """
-        Возвращает название подразделения, в котором работает сотрудник.
-        """
-        # Проверяем, является ли сотрудник руководителем службы
-        if hasattr(self, "service_leader") and self.service_leader:
-            return f"{self.service_leader.name}"
-
-        # Проверяем, является ли сотрудник руководителем управления
-        if hasattr(self, "department_leader") and self.department_leader:
-            return f"{self.department_leader.name}"
-
-        # Проверяем, является ли сотрудник руководителем отдела
-        if hasattr(self, "division_leader") and self.division_leader:
-            return f"{self.division_leader.name}"
-
-        # Проверяем, к какой группе принадлежит сотрудник
-        teams = self.team_members.all()
-        if teams.exists():
-            return f"{teams.first().name}"  # Берем первую группу из списка
-
-        # Если сотрудник не связан ни с одним подразделением
-        return "Не определено"
-
-
 class Service(models.Model, EmployeeContainerMixin):
     name = models.CharField(max_length=255)
-    leader = models.OneToOneField(
-        Employee,
-        on_delete=models.SET_NULL,
-        related_name="service_leader",
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return self.name
@@ -91,13 +41,6 @@ class Department(models.Model, EmployeeContainerMixin):
         Service, on_delete=models.CASCADE, related_name="departments"
     )
     name = models.CharField(max_length=255)
-    leader = models.OneToOneField(
-        Employee,
-        on_delete=models.SET_NULL,
-        related_name="department_leader",
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return f"{self.name} ({self.service})"
@@ -108,17 +51,26 @@ class Division(models.Model, EmployeeContainerMixin):
         Department, on_delete=models.CASCADE, related_name="divisions"
     )
     name = models.CharField(max_length=255)
-    leader = models.OneToOneField(
-        Employee,
-        on_delete=models.SET_NULL,
-        related_name="division_leader",
-        null=True,
-        blank=True,
-    )
 
     def __str__(self):
         return f"{self.name} ({self.department})"
 
+
+class Employee(models.Model):
+    full_name = models.CharField(max_length=255, verbose_name="ФИО")
+    position = models.CharField(max_length=255, verbose_name="Должность")
+    date_of_birth = models.DateField(verbose_name="Дата рождения")
+    photo = models.ImageField(
+        upload_to="employee_photos/", blank=True, null=True, verbose_name="Фотография"
+    )
+    start_date = models.DateField(verbose_name="Дата начала работы")
+    
+    @property
+    def team(self):
+        return self.team_members.first().name
+    
+    def __str__(self):
+        return self.full_name
 
 class Team(models.Model):
     division = models.ForeignKey(
@@ -134,4 +86,6 @@ class Team(models.Model):
         return list(self.members.all())
 
     def __str__(self):
-        return f"{self.name} ({self.division})"
+        return self.name
+
+

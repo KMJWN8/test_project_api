@@ -1,5 +1,5 @@
 from rest_framework import serializers
-
+from drf_writable_nested import WritableNestedModelSerializer
 from .models import Department, Division, Employee, Service, Team
 
 
@@ -13,19 +13,17 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "photo",
             "start_date",
-            "subdivision_name",
+            "team"
         ]
-
-    def get_subdivision_name(self, obj):
-        """
-        Получает значение свойства subdivision_name.
-        """
-        return obj.subdivision_name
+        
+    def get_team_name(self, obj):
+        return obj.team
 
 
-class TeamSerializer(serializers.ModelSerializer):
+
+class TeamSerializer(WritableNestedModelSerializer):
     members = EmployeeSerializer(many=True)
-
+    
     class Meta:
         model = Team
         fields = ["id", "name", "members"]
@@ -34,37 +32,34 @@ class TeamSerializer(serializers.ModelSerializer):
         return EmployeeSerializer(obj.get_all_employees(), many=True).data
 
 
-class DivisionSerializer(serializers.ModelSerializer):
-    leader = EmployeeSerializer()
+class DivisionSerializer(WritableNestedModelSerializer):
     teams = serializers.SerializerMethodField()
 
     class Meta:
         model = Division
-        fields = ["id", "name", "leader", "teams"]
+        fields = ["id", "name", "teams"]
 
     def get_teams(self, obj):
         return TeamSerializer(obj.teams.all(), many=True).data
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    leader = EmployeeSerializer()
+class DepartmentSerializer(WritableNestedModelSerializer):
     divisions = serializers.SerializerMethodField()
 
     class Meta:
         model = Department
-        fields = ["id", "name", "leader", "divisions"]
+        fields = ["id", "name", "divisions"]
 
     def get_divisions(self, obj):
         return DivisionSerializer(obj.divisions.all(), many=True).data
 
 
-class ServiceSerializer(serializers.ModelSerializer):
-    leader = EmployeeSerializer()
+class ServiceSerializer(WritableNestedModelSerializer):
     departments = serializers.SerializerMethodField()
 
     class Meta:
         model = Service
-        fields = ["id", "name", "leader", "departments"]
+        fields = ["id", "name", "departments"]
 
     def get_departments(self, obj):
         return DepartmentSerializer(obj.departments.all(), many=True).data
