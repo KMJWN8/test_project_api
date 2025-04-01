@@ -1,5 +1,6 @@
-from rest_framework import serializers
 from drf_writable_nested import WritableNestedModelSerializer
+from rest_framework import serializers
+
 from .models import Department, Division, Employee, Service, Team
 
 
@@ -13,20 +14,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "date_of_birth",
             "photo",
             "start_date",
-            "team"
+            "team",
         ]
-        
+
     def get_team_name(self, obj):
         return obj.team
 
 
-
 class TeamSerializer(WritableNestedModelSerializer):
-    members = EmployeeSerializer(many=True)
-    
+    members = EmployeeSerializer(many=True, required=False)
+
     class Meta:
         model = Team
-        fields = ["id", "name", "members"]
+        fields = ["id", "name", "members", "division"]
 
     def get_all_employees(self, obj):
         return EmployeeSerializer(obj.get_all_employees(), many=True).data
@@ -37,7 +37,7 @@ class DivisionSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Division
-        fields = ["id", "name", "teams"]
+        fields = ["id", "name", "teams", "department"]
 
     def get_teams(self, obj):
         return TeamSerializer(obj.teams.all(), many=True).data
@@ -48,7 +48,7 @@ class DepartmentSerializer(WritableNestedModelSerializer):
 
     class Meta:
         model = Department
-        fields = ["id", "name", "divisions"]
+        fields = ["id", "name", "divisions", "service"]
 
     def get_divisions(self, obj):
         return DivisionSerializer(obj.divisions.all(), many=True).data
