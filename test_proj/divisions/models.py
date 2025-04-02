@@ -43,7 +43,7 @@ class Department(models.Model, EmployeeContainerMixin):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.name} ({self.service})"
+        return self.name
 
 
 class Division(models.Model, EmployeeContainerMixin):
@@ -53,7 +53,7 @@ class Division(models.Model, EmployeeContainerMixin):
     name = models.CharField(max_length=255)
 
     def __str__(self):
-        return f"{self.name} ({self.department})"
+        return self.name
 
 
 class Employee(models.Model):
