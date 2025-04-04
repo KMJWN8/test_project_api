@@ -144,5 +144,5 @@ def get_statistics(employees):
     return {
         "employee_count": employee_count,
         "average_age": round(average_age),
-        "average_tenure": round(average_tenure, 2),
+        "average_tenure": round(average_tenure),
     }
