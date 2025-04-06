@@ -1,6 +1,6 @@
 from datetime import date
 
-from rest_framework import viewsets
+from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -89,34 +89,35 @@ class TeamViewSet(viewsets.ModelViewSet, EmployeesMixin):
         stats = get_statistics(employees)
         # Возвращаем результат
         return Response(stats)
-    
+
     @action(detail=True, methods=["patch"], url_path="add-member")
     def add_member(self, request, pk=None):
         """
         Добавляет сотрудника в группу.
         Принимает JSON с ключом 'member_id'.
         """
-            # Получаем объект группы
+        # Получаем объект группы
         team = self.get_object()
 
-            # Получаем ID сотрудника из запроса
+        # Получаем ID сотрудника из запроса
         member_id = request.data.get("member_id")
 
-            # Получаем объект сотрудника
+        # Получаем объект сотрудника
         member = Employee.objects.get(id=member_id)
 
-            # Добавляем сотрудника в группу
+        # Добавляем сотрудника в группу
         team.members.add(member)
 
         return Response(
-                {"message": f"Сотрудник {member.full_name} успешно добавлен в группу."}
-                )
-
+            {"message": f"Сотрудник {member.full_name} успешно добавлен в группу."}
+        )
 
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["full_name"]
 
 
 def get_statistics(employees):

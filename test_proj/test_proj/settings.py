@@ -41,7 +41,13 @@ INSTALLED_APPS = [
     "divisions.apps.DivisionsConfig",
     "rest_framework",
     "corsheaders",
+    "django_filters",
 ]
+
+# добавлено
+REST_FRAMEWORK = {
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"]
+}
 
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
