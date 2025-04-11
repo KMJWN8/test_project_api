@@ -1,9 +1,11 @@
 from datetime import date
 
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
 
 from .models import Department, Division, Employee, Service, Team
 from .serializers import (
@@ -116,8 +118,10 @@ class TeamViewSet(viewsets.ModelViewSet, EmployeesMixin):
 class EmployeeViewSet(viewsets.ModelViewSet):
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["full_name"]
+    ordering_fields = ['date_of_birth', 'start_date']
+    ordering = ['date_of_birth', 'start_date']
 
 
 def get_statistics(employees):
